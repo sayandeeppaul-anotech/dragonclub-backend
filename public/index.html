@@ -1,0 +1,35 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Link Generator</title>
+</head>
+<body>
+  <h1>Generate Payment Link</h1>
+  <form id="paymentForm">
+    <label for="amount">Amount:</label>
+    <input type="text" id="amount" name="amount" required><br><br>
+    <label for="agent_id">Agent ID:</label>
+    <input type="text" id="agent_id" name="agent_id" required><br><br>
+    <button type="submit">Generate Link</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('paymentForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      fetch('https://indianwin365.com/generate-payment-link', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  </script>
+</body>
+</html>

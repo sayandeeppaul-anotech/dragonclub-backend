@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.min.js"></script>
+</head>
+<body>
+    <button id="getUsersButton">Get Users</button>
+    <div id="users"></div>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:3000');
+        const getUsersButton = document.getElementById('getUsersButton');
+        const usersDiv = document.getElementById('users');
+
+        getUsersButton.addEventListener('click', () => {
+            socket.send('getUsers');
+        });
+
+        socket.addEventListener('message', (event) => {
+            const users = JSON.parse(event.data);
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.textContent = `User: ${user.name}, Email: ${user.email}`;
+                usersDiv.appendChild(userDiv);
+            });
+        });
+    </script>
+</body>
+</html>
+
