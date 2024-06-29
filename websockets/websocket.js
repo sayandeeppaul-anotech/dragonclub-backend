@@ -1,9 +1,9 @@
 const WebSocket = require("ws");
-// const {
-//   createTimer,
-//   calculateRemainingTime,
-//   secondsToHms,
-// } = require("../controllers/cronJobControllers");
+const {
+  createTimer,
+  calculateRemainingTime,
+  secondsToHms,
+} = require("../controllers/cronJobControllers");
 const {
   createTrxTimer1,
   calculateRemainingTime1,
@@ -63,10 +63,10 @@ wss.on("connection", async (ws) => {
   });
 });
 
-// createTimer(Timer1Min, 1, "1min"); // 1 min
-// createTimer(Timer3Min, 3, "3min"); // 3 min
-// createTimer(Timer5Min, 5, "5min"); // 5 min
-// createTimer(Timer10Min, 10, "10min"); // 10 min
+createTimer(Timer1Min, 1, "1min"); // 1 min
+createTimer(Timer3Min, 3, "3min"); // 3 min
+createTimer(Timer5Min, 5, "5min"); // 5 min
+createTimer(Timer10Min, 10, "10min"); // 10 min
 
 createTrxTimer1(Timer1Min, 1, "1min"); // 1 min
 createTrxTimer1(Timer3Min, 3, "3min"); // 3 min

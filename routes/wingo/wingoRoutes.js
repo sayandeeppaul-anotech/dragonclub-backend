@@ -3,10 +3,9 @@ const Bet = require('../../models/betsModel');
 const router = express.Router();
 const auth = require('../../middlewares/auth');
 const User = require('../../models/userModel');
-const { addTransactionDetails} = require("../../controllers/TransactionHistoryControllers");
+const { addTransactionDetails } = require("../../controllers/TransactionHistoryControllers");
 const CommissionRate = require('../../models/betCommissionLevel');
 const { isAdmin } = require('../../middlewares/roleSpecificMiddleware');
-
 
 router.post('/wingobet', auth, async (req, res) => {
     try {
@@ -35,11 +34,16 @@ router.post('/wingobet', auth, async (req, res) => {
         });
 
         await bet.save();
-        addTransactionDetails(bet.userId,bet.totalBet,"Wingo", new Date())
-        // Commission rates
-        const { level1, level2, level3, level4, level5 } = await CommissionRate.findOne();
-        const commissionRates = [level1, level2, level3, level4, level5];
+        addTransactionDetails(bet.userId, bet.totalBet, "Wingo", new Date());
 
+        // Commission rates
+        const commissionRateDoc = await CommissionRate.find();
+        console.log('----->',commissionRateDoc)
+        if (!commissionRateDoc) {
+            return res.status(500).json({ message: 'Commission rates not set up.' });
+        }
+        const { level1, level2, level3, level4, level5 } = commissionRateDoc;
+        const commissionRates = [level1, level2, level3, level4, level5];
 
         // Start with the user who placed the bet
         let currentUserId = req.user._id;
@@ -69,41 +73,36 @@ router.post('/wingobet', auth, async (req, res) => {
             referrer.walletAmount += commission;
             addTransactionDetails(referrer._id, commission, "Bet", new Date());
 
+            // Get today's date
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-// Get today's date
-let today = new Date();
-today.setHours(0, 0, 0, 0);
+            // Find the commission record for today
+            let commissionRecord = referrer.commissionRecords.find(record => {
+                let recordDate = new Date(record.date);
+                recordDate.setHours(0, 0, 0, 0);
+                return recordDate.getTime() === today.getTime() && record.uid === req.user.uid;
+            });
 
+            if (commissionRecord) {
+                // If a record for today exists, update the commission
+                commissionRecord.commission += commission;
+                commissionRecord.betAmount += req.body.totalBet; // Update the betAmount
+            } else {
+                // If no record for today exists, create a new one
+                // Only if the uid of the referrer matches the uid of the user who placed the bet
+                if (referrer.uid === req.user.uid) {
+                    referrer.commissionRecords.push({
+                        date: today,
+                        level: i + 1,
+                        uid: req.user.uid,
+                        commission: commission,
+                        betAmount: req.body.totalBet,
+                    });
+                }
+            }
 
-// Find the commission record for today
-let commissionRecord = referrer.commissionRecords.find(record => {
-    let recordDate = new Date(record.date);
-    recordDate.setHours(0, 0, 0, 0);
-    return recordDate.getTime() === today.getTime() && record.uid === req.user.uid;
-});
-
-if (commissionRecord) {
-    // If a record for today exists, update the commission
-    commissionRecord.commission += commission;
-    commissionRecord.betAmount += req.body.totalBet; // Update the betAmount
-} else {
-    // If no record for today exists, create a new one
-    // Only if the uid of the referrer matches the uid of the user who placed the bet
-    if (referrer.uid === req.user.uid) {
-        referrer.commissionRecords.push({
-            date: today,
-            level: i + 1, 
-            uid: req.user.uid,
-            commission: commission,
-            betAmount: req.body.totalBet,
-        });
-    }
-}
-
-
-await referrer.save();
-
-
+            await referrer.save();
 
             // Move to the next user in the upline
             currentUserId = referrer._id;
@@ -115,59 +114,5 @@ await referrer.save();
         res.status(500).json({ message: 'Error saving bet', error: error.message });
     }
 });
-  
 
-router.get('/user/betshistory', auth, async (req, res) => {
-    try {
-        const userId = req.user._id;
-        const bets = await Bet.find({ userId: userId }).sort({ timestamp: -1 });
-        res.status(200).json(bets);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error retrieving bet history', error: error.message });
-    }
-});
-
-
-
-router.put('/commissionRates', auth, isAdmin, async (req, res) => {
-    try {
-        const { level1, level2, level3, level4, level5 } = req.body;
-
-        const commissionRate = await CommissionRate.findOneAndUpdate({}, {
-            level1,
-            level2,
-            level3,
-            level4,
-            level5
-        }, { new: true, upsert: true });
-
-        res.status(200).json(commissionRate);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error saving commission rates', error: error.message });
-    }
-});
-
-
-router.get('/commissionRates-data-get', auth, isAdmin, async (req, res) => {
-    try {
-        const commissionRates = await CommissionRate.findOne();
-        res.status(200).json(commissionRates);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching commission rates', error: error.message });
-    }
-});
-
-
-  module.exports = router;
-
-
-
-
-
-
-
-
-  
+module.exports = router;

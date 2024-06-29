@@ -5,7 +5,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 require("dotenv").config();
 
-// const logger = require("./middlewares/logger");
+const logger = require("./middlewares/logger");
 const db = require("./db");
 const { setupWebSocket } = require("./websockets/websocket");
 const routes = require("./routes/Routes");
@@ -46,7 +46,7 @@ app.use('/admin', express.static(path.join(__dirname, 'admin/build')));
 // });
 
 // Logger middleware
-// app.use(logger);
+app.use(logger);
 
 // Routes
 app.use(routes);
