@@ -34,11 +34,11 @@ router.put("/update-unlock-commission", auth, isAdmin, async (req, res) => {
 
     if (!levels || levels.length === 0) {
       levels = [
-        { minAmount: 1000, bonusAmount: 100, awarded: "Bronze" },
-        { minAmount: 5000, bonusAmount: 250, awarded: "Silver" },
-        { minAmount: 10000, bonusAmount: 500, awarded: "Gold" },
-        { minAmount: 20000, bonusAmount: 750, awarded: "Platinum" },
-        { minAmount: 50000, bonusAmount: 1000, awarded: "Diamond" },
+        { minAmount: 1000, bonusAmount: 100, awarded: "Bronze", monthlyBonus: 50 },
+        { minAmount: 5000, bonusAmount: 250, awarded: "Silver", monthlyBonus: 100 },
+        { minAmount: 10000, bonusAmount: 500, awarded: "Gold", monthlyBonus: 200 },
+        { minAmount: 20000, bonusAmount: 750, awarded: "Platinum", monthlyBonus: 300 },
+        { minAmount: 50000, bonusAmount: 1000, awarded: "Diamond", monthlyBonus: 500 },
       ];
     }
 
@@ -62,6 +62,7 @@ router.put("/update-unlock-commission", auth, isAdmin, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
 
 router.get("/fetch-commission-rates", auth, isAdmin, async (req, res) => {
   try {

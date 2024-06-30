@@ -1,6 +1,8 @@
+// models/allSalaryHistoryModel.js
+
 const mongoose = require("mongoose");
 
-const salarySchema = new mongoose.Schema({
+const allSalaryHistorySchema = new mongoose.Schema({
   uid: { type: String, required: true },
   salaryAmount: { type: Number, required: true },
   salaryFrequency: {
@@ -8,10 +10,9 @@ const salarySchema = new mongoose.Schema({
     enum: ["Daily", "Weekly", "Monthly", "Yearly", "Hourly", "Minutely"],
     required: true,
   },
-  nextPaymentDate: { type: Date },
-  frequencyLimit: { type: Number, required: true },
+  paymentDate: { type: Date, default: Date.now },
 });
 
-const Salary = mongoose.model("Salary", salarySchema);
+const AllSalaryHistory = mongoose.model("AllSalaryHistory", allSalaryHistorySchema);
 
-module.exports = Salary;
+module.exports = AllSalaryHistory;

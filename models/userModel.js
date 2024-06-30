@@ -55,6 +55,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  lastMonthlyBonusMinute: { type: Number, default: 0 } ,
   referredUsers: [ReferredUser.schema],
   commissionRecords: [
     {

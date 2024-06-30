@@ -32,6 +32,8 @@ const TrxResultRoute = require('../routes/Trx/TrxResultRoute')
 const depositBonusRoute = require('../routes/Admin/depositBonusRoute')
 const adminSalaryCriteriaRoute = require('../routes/Admin/adminSettingsRoute')
 const autoSalaryCreditRoute = require('../routes/Salary/autoSalaryCreditRoute')
+const aviatorRoute = require('../routes/Aviator/aviatorRoute')
+
 
 router.use('/', registerRoute);
 router.use('/', loginRoute);
@@ -64,5 +66,6 @@ router.use('/',TrxResultRoute)
 router.use('/',depositBonusRoute)
 router.use('/',adminSalaryCriteriaRoute)
 router.use('/',autoSalaryCreditRoute)
+router.use('/',aviatorRoute)
 
 module.exports = router;
