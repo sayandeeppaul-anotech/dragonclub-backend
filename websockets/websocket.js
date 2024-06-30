@@ -1,14 +1,14 @@
 const WebSocket = require("ws");
-const {
-  createTimer,
-  calculateRemainingTime,
-  secondsToHms,
-} = require("../controllers/cronJobControllers");
-const {
-  createTrxTimer1,
-  calculateRemainingTime1,
-  secondsToHms1,
-} = require("../controllers/cronjobTRXController");
+// const {
+//   createTimer,
+//   calculateRemainingTime,
+//   secondsToHms,
+// } = require("../controllers/cronJobControllers");
+// const {
+//   createTrxTimer1,
+//   calculateRemainingTime1,
+//   secondsToHms1,
+// } = require("../controllers/cronjobTRXController");
 const {
   createTimer2,
   calculateRemainingTime2,
@@ -63,15 +63,15 @@ wss.on("connection", async (ws) => {
   });
 });
 
-createTimer(Timer1Min, 1, "1min"); // 1 min
-createTimer(Timer3Min, 3, "3min"); // 3 min
-createTimer(Timer5Min, 5, "5min"); // 5 min
-createTimer(Timer10Min, 10, "10min"); // 10 min
+// createTimer(Timer1Min, 1, "1min"); // 1 min
+// createTimer(Timer3Min, 3, "3min"); // 3 min
+// createTimer(Timer5Min, 5, "5min"); // 5 min
+// createTimer(Timer10Min, 10, "10min"); // 10 min
 
-createTrxTimer1(Timer1Min, 1, "1min"); // 1 min
-createTrxTimer1(Timer3Min, 3, "3min"); // 3 min
-createTrxTimer1(Timer5Min, 5, "5min"); // 5 min
-createTrxTimer1(Timer10Min, 10, "10min"); // 10 min
+// createTrxTimer1(Timer1Min, 1, "1min"); // 1 min
+// createTrxTimer1(Timer3Min, 3, "3min"); // 3 min
+// createTrxTimer1(Timer5Min, 5, "5min"); // 5 min
+// createTrxTimer1(Timer10Min, 10, "10min"); // 10 min
 
 createTimer2(Timer1Min, 1, "1min"); // 1 min
 createTimer2(Timer3Min, 3, "3min"); // 3 min
@@ -118,40 +118,40 @@ wss.on("connection", (ws) => {
     });
 
 
-    const timers1 = await async.parallel({
-      "1min": async () => {
-        const timer = await Timer1Min.find().sort({ _id: -1 }).limit(1);
-        const remainingTime = calculateRemainingTime1(timer[0].periodId, 1);
-        return {
-          periodId: timer[0].periodId,
-          remainingTime: secondsToHms1(remainingTime),
-        };
-      },
-      "3min": async () => {
-        const timer = await Timer3Min.find().sort({ _id: -1 }).limit(1);
-        const remainingTime = calculateRemainingTime1(timer[0].periodId, 3);
-        return {
-          periodId: timer[0].periodId,
-          remainingTime: secondsToHms1(remainingTime),
-        };
-      },
-      "5min": async () => {
-        const timer = await Timer5Min.find().sort({ _id: -1 }).limit(1);
-        const remainingTime = calculateRemainingTime1(timer[0].periodId, 5);
-        return {
-          periodId: timer[0].periodId,
-          remainingTime: secondsToHms1(remainingTime),
-        };
-      },
-      "10min": async () => {
-        const timer = await Timer10Min.find().sort({ _id: -1 }).limit(1);
-        const remainingTime = calculateRemainingTime1(timer[0].periodId, 10);
-        return {
-          periodId: timer[0].periodId,
-          remainingTime: secondsToHms1(remainingTime),
-        };
-      },
-    });
+    // const timers = await async.parallel({
+    //   "1min": async () => {
+    //     const timer = await Timer1Min.find().sort({ _id: -1 }).limit(1);
+    //     const remainingTime = calculateRemainingTime1(timer[0].periodId, 1);
+    //     return {
+    //       periodId: timer[0].periodId,
+    //       remainingTime: secondsToHms1(remainingTime),
+    //     };
+    //   },
+    //   "3min": async () => {
+    //     const timer = await Timer3Min.find().sort({ _id: -1 }).limit(1);
+    //     const remainingTime = calculateRemainingTime1(timer[0].periodId, 3);
+    //     return {
+    //       periodId: timer[0].periodId,
+    //       remainingTime: secondsToHms1(remainingTime),
+    //     };
+    //   },
+    //   "5min": async () => {
+    //     const timer = await Timer5Min.find().sort({ _id: -1 }).limit(1);
+    //     const remainingTime = calculateRemainingTime1(timer[0].periodId, 5);
+    //     return {
+    //       periodId: timer[0].periodId,
+    //       remainingTime: secondsToHms1(remainingTime),
+    //     };
+    //   },
+    //   "10min": async () => {
+    //     const timer = await Timer10Min.find().sort({ _id: -1 }).limit(1);
+    //     const remainingTime = calculateRemainingTime1(timer[0].periodId, 10);
+    //     return {
+    //       periodId: timer[0].periodId,
+    //       remainingTime: secondsToHms1(remainingTime),
+    //     };
+    //   },
+    // });
 
     ws.send(JSON.stringify({ timers }));
   };
