@@ -23,100 +23,109 @@ const Bet = require("../models/betsModel"); // Assuming you have Bet model defin
 const cron = require("node-cron");
 const MainLevelModel = require("../models/levelSchema"); // Assuming you have MainLevelModel defined
 
-cron.schedule('* * * * *', async () => {
-    try {
-      console.log('Running cron job at:', new Date().toISOString());
-  
-      // Get the current minute
-      const currentMinute = new Date().getMinutes();
-  
-      // Aggregate total bets per user
-      const betAggregation = await Bet.aggregate([
-        {
-          $group: {
-            _id: '$userId',
-            totalAmountOfBets: { $sum: '$betAmount' }, // Summing up the betAmount field for each user
-            betCount: { $sum: 1 }, // Counting the number of bets for each user
-          },
-        },
-        {
-          $project: {
-            userId: '$_id',
-            totalAmountOfBets: 1,
-            betCount: 1,
-            _id: 0,
-          },
-        },
-      ]);
-  
-      console.log('Bet aggregation results:', JSON.stringify(betAggregation, null, 2));
-  
-      // Fetch main levels schema
-      const mainLevelsDoc = await MainLevelModel.findOne();
-      if (!mainLevelsDoc) {
-        console.error('Main levels data not found.');
-        return;
-      }
-  
-      console.log('Main levels:', JSON.stringify(mainLevelsDoc.levels, null, 2));
-  
-      // Iterate through aggregated results
-      for (const result of betAggregation) {
-        const { userId, totalAmountOfBets } = result;
-  
-        console.log(`Processing user with ID ${userId}: totalAmountOfBets=${totalAmountOfBets}`);
-  
-        // Find the user and update based on total bets
-        const user = await User.findById(userId);
-        if (!user) {
-          console.error(`User with ID ${userId} not found.`);
-          continue;
-        }
-  
-        let highestAchievedLevel = null;
-        for (const level of mainLevelsDoc.levels) {
-          if (totalAmountOfBets >= level.minAmount) {
-            highestAchievedLevel = level;
-          } else {
-            break; // Levels are sorted by minAmount, so no need to check lower levels
-          }
-        }
-  
-        if (highestAchievedLevel) {
-          // Check if this level is already achieved
-          if (!user.achievements.includes(`Reached ${highestAchievedLevel.awarded} level`)) {
-            // Add one-time bonus to user's wallet
-            user.walletAmount += highestAchievedLevel.bonusAmount;
-            console.log(`Added one-time bonus of ${highestAchievedLevel.bonusAmount} to user with ID ${userId}. New wallet balance: ${user.walletAmount}`);
-  
-            // Update achievements and mark level as achieved
-            user.achievements.push(`Reached ${highestAchievedLevel.awarded} level`);
-            console.log(`Updated achievements for user with ID ${userId}: ${user.achievements}`);
-          }
-        }
-  
-        // Check if it's time to add the monthly bonus
-        if (currentMinute !== user.lastMonthlyBonusMinute) {
-          if (highestAchievedLevel) {
-            // Add monthly bonus
-            user.walletAmount += highestAchievedLevel.monthlyBonus;
-            console.log(`Added monthly bonus of ${highestAchievedLevel.monthlyBonus} to user with ID ${userId}. New wallet balance: ${user.walletAmount}`);
-          }
-          user.lastMonthlyBonusMinute = currentMinute;
-        }
-  
-        // Save updated user
-        await user.save();
-        console.log(`Saved updates for user with ID ${userId}`);
-      }
-  
-      console.log('User updates based on total bets and mainLevels completed successfully.');
-    } catch (err) {
-      console.error('Error updating users:', err);
-    }
-  });
+cron.schedule("* * * * *", async () => {
+  try {
+    console.log("Running cron job at:", new Date().toISOString());
 
-  
+    // Aggregate total bets per user
+    const betAggregation = await Bet.aggregate([
+      {
+        $addFields: {
+          multipliedBetAmount: { $multiply: ["$betAmount", "$multiplier"] } // Calculate betAmount * multiplier
+        }
+      },
+      {
+        $group: {
+          _id: "$userId",
+          totalAmountOfBets: { $sum: "$multipliedBetAmount" }, // Summing up the multiplied betAmount for each user
+          betCount: { $sum: 1 }, // Counting the number of bets for each user
+        }
+      },
+      {
+        $project: {
+          userId: "$_id",
+          totalAmountOfBets: 1,
+          betCount: 1,
+          _id: 0
+        }
+      }
+    ])
+
+    console.log(
+      "Bet aggregation results:",
+      JSON.stringify(betAggregation)
+    );
+
+    // Fetch main levels schema
+    const mainLevelsDoc = await MainLevelModel.findOne();
+    if (!mainLevelsDoc) {
+      console.error("Main levels data not found.");
+      return;
+    }
+
+    console.log("Main levels:", JSON.stringify(mainLevelsDoc.levels, null, 2));
+
+    // Iterate through aggregated results
+    for (const result of betAggregation) {
+      const { userId, totalAmountOfBets } = result;
+
+      console.log(
+        `Processing user with ID ${userId}: totalAmountOfBets=${totalAmountOfBets}`
+      );
+
+      // Find the user and update based on total bets
+      const user = await User.findById(userId);
+      if (!user) {
+        console.error(`User with ID ${userId} not found.`);
+        continue;
+      }
+
+      let highestAchievedLevel = null;
+      for (const level of mainLevelsDoc.levels) {
+        if (totalAmountOfBets >= level.minAmount) {
+          highestAchievedLevel = level;
+        } else {
+          break; // Levels are sorted by minAmount, so no need to check lower levels
+        }
+      }
+
+      if (highestAchievedLevel) {
+        // Check if this level is already achieved
+        const levelAchievement = `Reached ${highestAchievedLevel.awarded} level`;
+        if (!user.achievements.includes(levelAchievement)) {
+          // Add one-time bonus to user's wallet
+          user.walletAmount += highestAchievedLevel.oneTimeBonus;
+          console.log(
+            `Added one-time bonus of ${highestAchievedLevel.oneTimeBonus} to user with ID ${userId}. New wallet balance: ${user.walletAmount}`
+          );
+
+          // Update achievements and mark level as achieved
+          user.achievements.push(levelAchievement);
+          console.log(
+            `Updated achievements for user with ID ${userId}: ${user.achievements}`
+          );
+        }
+
+        // Add monthly bonus
+        user.walletAmount += highestAchievedLevel.monthlyBonus;
+        console.log(
+          `Added monthly bonus of ${highestAchievedLevel.monthlyBonus} to user with ID ${userId}. New wallet balance: ${user.walletAmount}`
+        );
+      }
+
+      // Save updated user
+      await user.save();
+      console.log(`Saved updates for user with ID ${userId}`);
+    }
+
+    console.log(
+      "User updates based on total bets and mainLevels completed successfully."
+    );
+  } catch (err) {
+    console.error("Error updating users:", err);
+  }
+});
+
 const wss = new WebSocket.Server({ noServer: true });
 function setupWebSocket(server) {
   server.on("upgrade", (request, socket, head) => {
