@@ -54,7 +54,8 @@ cron.schedule("* * * * *", async () => {
     console.log(
       "Bet aggregation results:",
       JSON.stringify(betAggregation)
-    );
+    ); 
+    
 
     // Fetch main levels schema
     const mainLevelsDoc = await MainLevelModel.findOne();
