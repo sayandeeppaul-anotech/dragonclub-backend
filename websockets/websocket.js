@@ -115,6 +115,8 @@ cron.schedule('* * * * *', async () => {
       console.error('Error updating users:', err);
     }
   });
+
+  
 const wss = new WebSocket.Server({ noServer: true });
 function setupWebSocket(server) {
   server.on("upgrade", (request, socket, head) => {
